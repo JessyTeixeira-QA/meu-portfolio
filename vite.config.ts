@@ -8,6 +8,8 @@ import path from "path";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
 
 export default defineConfig({
+  base: "/meu-portfolio/",
+
   plugins: [
     react(),
     tailwindcss(),
