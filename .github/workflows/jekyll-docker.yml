@@ -1,39 +1,57 @@
-# Nome do seu fluxo de trabalho
-name: Build and Deploy Jekyll Site
+# Nome do fluxo de trabalho para um site Vite
+name: Deploy Vite Site to Pages
 
 on:
+  # Roda quando você faz um push para a branch `main`
   push:
-    branches: [ "main" ]
+    branches: ["main"]
+
+  # Permite que você rode este fluxo de trabalho manualmente pela aba Actions
   workflow_dispatch:
 
+# Define as permissões para o GITHUB_TOKEN
 permissions:
   contents: read
   pages: write
   id-token: write
 
-jobs:
-  build-and-deploy:
-    # ESTE BLOCO É O QUE ESTÁ FALTANDO
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }} # Esta linha é importante!
+# Permite apenas um deploy concorrente, cancelando execuções antigas
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
+jobs:
+  # Tarefa de build (construção)
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Build the site
-        run: |
-          docker run \
-          -v "${{ github.workspace }}":/srv/jekyll \
-          jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && jekyll build"
-
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18 # Usa a versão 18 do Node.js
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm install # Instala as dependências do projeto
+      - name: Build
+        run: npm run build # Constrói o site para produção
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './_site'
+          # Faz o upload da pasta 'dist' (que é onde o Vite constrói o site)
+          path: './dist'
 
+  # Tarefa de deploy (publicação)
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
