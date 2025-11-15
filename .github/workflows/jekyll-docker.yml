@@ -13,6 +13,11 @@ permissions:
 
 jobs:
   build-and-deploy:
+    # ESTE BLOCO É O QUE ESTÁ FALTANDO
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }} # Esta linha é importante!
+
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -27,12 +32,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # O Jekyll, por padrão, constrói na pasta '_site'.
           path: './_site'
 
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-
-
