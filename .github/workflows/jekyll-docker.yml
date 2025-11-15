@@ -1,20 +1,16 @@
 # Nome do seu fluxo de trabalho
-name: Jekyll site CI
+name: Build and Deploy Jekyll Site
 
-# Define quando o fluxo de trabalho deve rodar (ex: em um push para a branch 'main')
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch: # Permite rodar manualmente
+    branches: [ "main" ]
+  workflow_dispatch:
 
-# ADICIONE ESTE BLOCO DE PERMISSÕES AQUI
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Seus "jobs" (tarefas)
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -22,20 +18,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build the site in jekyll/builder container
+      - name: Build the site
         run: |
           docker run \
-           -v ${{ github.workspace }}:/srv/jekyll -v ${{ github.workspace }}/_site:/srv/jekyll/_site \
-            jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && jekyll build --future -s /srv/jekyll/docs"
-      
-      # Adicione os passos para fazer o deploy no GitHub Pages
+          -v "${{ github.workspace }}":/srv/jekyll \
+          jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && jekyll build"
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './_site' # Pasta onde o Jekyll construiu o site
+          # O Jekyll, por padrão, constrói na pasta '_site'.
+          path: './_site'
 
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
 
 
